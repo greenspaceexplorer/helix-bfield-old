@@ -1,0 +1,39 @@
+IDIR=include
+SDIR_C=src
+SDIR_F=heatsrc
+DEPS_H=common.h token_parser.h helix_magnet.h coil.h
+SOURCES_C=helix_magnet.cpp heat_magnet.cpp coil.cpp
+SOURCES_F=heat_mag.f90
+MAIN_C=test.cpp
+
+DEPS=$(addprefix $(IDIR)/,$(DEPS_H))
+SOURCESC=$(addprefix $(SDIR_C)/,$(SOURCES_C) $(MAIN_C))
+SOURCESF=$(addprefix $(SDIR_F)/,$(SOURCES_F))
+
+CC=g++
+FC=gfortran
+
+EXECUTABLE=test
+
+OBJECTSC=$(SOURCESC:.cpp=.o)
+OBJECTSF=$(SOURCESF:.f90=.o)
+
+CFLAGS=-I$(IDIR) -lgsl -lgslcblas -std=c++11
+FFLAGS=
+LDFLAGS=-lgfortran $(CFLAGS) -fopenmp
+
+all: $(EXECUTABLE) $(SOURCESC) $(OBJECTSF) $(DEPS)
+
+$(EXECUTABLE): $(OBJECTSC) $(OBJECTSF)
+	$(CC) -o $@ $(OBJECTSC) $(OBJECTSF) $(LDFLAGS)
+
+$(OBJECTSC): %.o: %.cpp
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(OBJECTSF): %.o: %.f90
+	$(FC) -c $(FFLAGS) $< -o $@
+
+.PHONY: clean
+
+clean:
+	rm -f $(SDIR_C)/*.o $(SDIR_F)/*.o  $(EXECUTABLE)
